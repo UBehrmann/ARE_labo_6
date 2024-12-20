@@ -33,23 +33,25 @@
  * 2. provides code that sets the IRQ mode stack, and that dis/enables interrupts
  * 3. provides code that initializes the generic interrupt controller
 */
-void fpga_ISR(void);
+void fpga_ISR(void){
+
+}
 
 // Define the IRQ exception handler
 void __attribute__ ((interrupt)) __cs3_isr_irq (void)
 {
-	/***********
-	 * TO DO
-	 **********/
+    // Lire l'ID de l'interruption
+    uint32_t interrupt_id = *(volatile uint32_t *)GIC_ICCIAR_INTERRUPT_ACK;
 
-	// Read CPU Interface registers to determine which peripheral has caused an interrupt 
-	
-	// Handle the interrupt if it comes from the fpga
+    // Vérifier si l'interruption provient du timer
+    if (interrupt_id == FPGA_IRQ_0_ID) { // ID du Timer HPS
+    	fpga_ISR();
+    }
 
-	// Clear interrupt from the CPU Interface
-    
-	return;
-} 
+    // Signaler la fin de l'interruption
+    *(volatile uint32_t *)GIC_ICCEOIR_END_OF_INTERRUPT = interrupt_id;
+}
+
 
 // Define the remaining exception handlers
 void __attribute__ ((interrupt)) __cs3_reset (void)
@@ -109,13 +111,43 @@ void enable_A9_interrupts(void)
 	asm("msr cpsr, %[ps]" : : [ps]"r"(status));
 }
 
-/* 
- * Configure the Generic Interrupt Controller (GIC)
+/* Configure the Generic Interrupt Controller (GIC)
+*
+* - Le GIC (Generic Interrupt Controller) gère, priorise, et route les interruptions
+* - des périphériques vers les cœurs du processeur
 */
-void config_GIC(void)
-{
-	/***********
-	 * TO DO
-	 **********/
+void config_GIC(void) {
+   // Configurer l'interruption pour le Timer HPS (ID 29 - à vérifier dans la documentation)
+   config_interrupt(FPGA_IRQ_0_ID, CPU0);
 
+   // Régler le Priority Mask Register pour autoriser toutes les priorités
+   *(int *)GIC_ICCPMR_PRIORITY_MASK = 0xFFFF;
+
+   // Activer l'interface CPU
+   *(int *)GIC_ICCICR_INTERFACE_CTRL = ENABLE;
+
+   // Activer le distributeur
+   *(int *)GIC_ICDDCR_DISTRIBUTOR_CTRL = ENABLE;
+}
+
+/*
+* Configure une interruption spécifique dans le GIC
+* N : ID de l'interruption
+* CPU_target : Cible CPU (par ex. CPU0)
+*/
+void config_interrupt(int N, int CPU_target) {
+   int reg_offset, index, value, address;
+
+   // Configurer les Set-Enable Registers (ICDISERn)
+   reg_offset = (N >> 5) * 4; // Calculer l'offset du registre (N / 32) * 4
+   index = N & 0x1F;          // Obtenir l'index du bit dans le registre
+   value = 0x1 << index;      // Créer le masque pour l'interruption
+   address = GIC_ICDISERn_INTERRUPT_SET_ENALBE + reg_offset; // Base pour ICDISERn
+   *(int *)address |= value;  // Activer l'interruption
+
+   // Configurer les Processor Targets Registers (ICDIPTRn)
+   reg_offset = (N & 0xFFFFFFFC);  // Offset du registre (N / 4) * 4
+   index = N & 0x3;               // Obtenir l'index du byte
+   address = GIC_ICDIPTRn_INTERRUPT_PROCESSOR_TARGETS + reg_offset + index; // Base pour ICDIPTRn
+   *(char *)address = (char)CPU_target; // Associer l'interruption au CPU
 }
