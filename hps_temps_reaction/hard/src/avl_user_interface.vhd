@@ -174,7 +174,7 @@ BEGIN
   hex2_o <= hex0_4_s(20 DOWNTO 14);
   hex3_o <= hex0_4_s(27 DOWNTO 21);
 
-  inter_s <= '1' WHEN (inter_key0_s = '1' AND inter_mask_s = '1') ELSE
+  inter_s <= '1' WHEN (inter_key0_s = '1' AND inter_mask_s = '0') ELSE
     '0';
 
   avl_irq_o <= inter_s;
@@ -337,7 +337,7 @@ BEGIN
 
   interrupt_key0 : PROCESS (
     inter_reset_s,
-    button_i
+    button_0_s
     )
   BEGIN
     IF inter_reset_s = '1' THEN
