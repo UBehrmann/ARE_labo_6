@@ -28,6 +28,7 @@
 
 #include "address_map_arm.h"
 #include "int_defines.h"
+#include "exceptions.h"
 /* This file:
  * 1. defines exception vectors for the A9 processor
  * 2. provides code that sets the IRQ mode stack, and that dis/enables interrupts
