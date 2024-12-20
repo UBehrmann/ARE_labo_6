@@ -177,6 +177,8 @@ BEGIN
   inter_s <= '1' WHEN (inter_key0_s = '1' AND inter_mask_s = '1') ELSE
     '0';
 
+    avl_irq_o <= inter_s;
+
   -- Read access part
   read_decoder_p : PROCESS (
     avl_read_i,
