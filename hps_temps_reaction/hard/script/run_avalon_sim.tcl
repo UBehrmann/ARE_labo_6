@@ -4,6 +4,8 @@ vlib work
 vmap work work
 
 #compile all file 
+vcom -reportprogress 300 -2008 -work work   ../src/compteur.vhd
+vcom -reportprogress 300 -2008 -work work   ../src/timer.vhd
 vcom -reportprogress 300 -2008 -work work   ../src/avl_user_interface.vhd
 
 # top_sim compilation
