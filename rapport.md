@@ -13,6 +13,7 @@
 - [Introduction](#introduction)
 - [Analyse](#analyse)
   - [Plan d’adressage](#plan-dadressage)
+  - [Emetteur série asynchrone](#emetteur-série-asynchrone)
 - [Implémentation](#implémentation)
 - [Tests](#tests)
 - [Conclusion](#conclusion)
@@ -47,11 +48,15 @@
 |                  | [0] interrupt             | [0] reset interrupt |
 | 0x1C             | [31..1] reserved          | [31..1] reserved    |
 |                  | [0] interrupt mask        | [0] interrupt mask  |
-| 0x20             | [31..20] reserved         | [31..0] reserved    |
-|                  | [19..0] data max10        |                     |
-| 0x24             | [31..2] reserved          | [31..0] reserved    |
-|                  | [1] status max10          |                     |
+| 0x20             | [31..0] reserved          | [31..20] reserved   |
+|                  |                           | [19..0] data max10  |
+| 0x24             | [31..3] reserved          | [31..0] reserved    |
+|                  | [2..1] status max10       |                     |
 |                  | [0] ready max10           |                     |
+
+## Emetteur série asynchrone
+
+Pour l'émetteur série asynchrone, nous avons dû utilsé une baudrate de 9600. Mais la vitesse de l'horloge étant de 50 MHz, nous avons dû utiliser un timer pour diviser cette fréquence. Nous avons donc utilisé un timer qui compte jusqu'à 5208 pour obtenir une fréquence de environ 9600 Hz.
 
 # Implémentation
 
