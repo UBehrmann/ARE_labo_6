@@ -16,43 +16,49 @@
 
 //------------------------DEFINES------------------------
 // Offsets des registres
-#define AVALON_USER_ID_OFFSET     	0x00
-#define AVALON_KEYS_OFFSET     		0x04
-#define AVALON_SWITCHS_OFFSET     	0x08
-#define AVALON_LEDS_OFFSET        	0x0C
-#define AVALON_HEX_OFFSET       	0x10
+#define AVALON_USER_ID_OFFSET     			0x00
+#define AVALON_KEYS_OFFSET     				0x04
+#define AVALON_SWITCHS_OFFSET     			0x08
+#define AVALON_LEDS_OFFSET        			0x0C
+#define AVALON_HEX_OFFSET       			0x10
+#define AVALON_MX10_OFFSET					0x24
 
 // Masques des registres
-#define AVALON_USER_ID_MASK       	0xFFFFFFFF
-#define AVALON_KEYS_MASK       		0x0000000F
-#define AVALON_SWITCHS_MASK       	0x000003FF
-#define AVALON_LEDS_MASK          	0x000003FF
-#define AVALON_HEX0_MASK        	0x0000007F // Bits 6..0
-#define AVALON_HEX1_MASK       		0x00003F80 // Bits 13..7
-#define AVALON_HEX2_MASK        	0x001FC000 // Bits 20..14
-#define AVALON_HEX3_MASK        	0x0FE00000 // Bits 27..21
+#define AVALON_USER_ID_MASK       			0xFFFFFFFF
+#define AVALON_KEYS_MASK       				0x0000000F
+#define AVALON_SWITCHS_MASK       			0x000003FF
+#define AVALON_LEDS_MASK          			0x000003FF
+#define AVALON_HEX0_MASK        			0x0000007F // Bits 6..0
+#define AVALON_HEX1_MASK       				0x00003F80 // Bits 13..7
+#define AVALON_HEX2_MASK        			0x001FC000 // Bits 20..14
+#define AVALON_HEX3_MASK        			0x0FE00000 // Bits 27..21
+#define AVALON_MX10_STATUS_MASK				0x00000006
+#define AVALON_MX10_READY_MASK				0x00000001
 
 
 // Décalage des valeurs des registres
-#define AVALON_USER_ID_SHIFT		0
-#define AVALON_KEYS_SHIFT       	0
-#define AVALON_SWITCHS_SHIFT       	0
-#define AVALON_LEDS_SHIFT          	0
-#define AVALON_HEX0_SHIFT       	0
-#define AVALON_HEX1_SHIFT       	7
-#define AVALON_HEX2_SHIFT       	14
-#define AVALON_HEX3_SHIFT       	21
-
+#define AVALON_USER_ID_SHIFT				0
+#define AVALON_KEYS_SHIFT       			0
+#define AVALON_SWITCHS_SHIFT       			0
+#define AVALON_LEDS_SHIFT          			0
+#define AVALON_HEX0_SHIFT       			0
+#define AVALON_HEX1_SHIFT       			7
+#define AVALON_HEX2_SHIFT       			14
+#define AVALON_HEX3_SHIFT       			21
+#define AVALON_MX10_STATUS_SHIFT			1
+#define AVALON_MX10_READY_SHIFT				0
 
 // Valeur normal (par défaut des registres)
-#define AVALON_USER_ID_INVERSE_VALUE	0
-#define AVALON_KEYS_INVERSE_VALUE   	1
-#define AVALON_SWITCHS_INVERSE_VALUE    0
-#define AVALON_LEDS_INVERSE_VALUE       0
-#define AVALON_HEX0_INVERSE_VALUE 		1
-#define AVALON_HEX1_INVERSE_VALUE 		1
-#define AVALON_HEX2_INVERSE_VALUE 		1
-#define AVALON_HEX3_INVERSE_VALUE 		1
+#define AVALON_USER_ID_INVERSE_VALUE		0
+#define AVALON_KEYS_INVERSE_VALUE   		1
+#define AVALON_SWITCHS_INVERSE_VALUE    	0
+#define AVALON_LEDS_INVERSE_VALUE       	0
+#define AVALON_HEX0_INVERSE_VALUE 			1
+#define AVALON_HEX1_INVERSE_VALUE 			1
+#define AVALON_HEX2_INVERSE_VALUE 			1
+#define AVALON_HEX3_INVERSE_VALUE 			1
+#define AVALON_MX10_STATUS_INVERSE_VALUE	0
+#define AVALON_MX10_READY_INVERSE_VALUE		0
 
 //-------------------------------------------------------
 
@@ -63,6 +69,7 @@
 #define AVALON_SWITCHS_REG      	(AVALON_REG(AVALON_SWITCHS_OFFSET))
 #define AVALON_LEDS_REG         	(AVALON_REG(AVALON_LEDS_OFFSET))
 #define AVALON_HEX_REG          	(AVALON_REG(AVALON_HEX_OFFSET))
+#define AVALON_MX10_REG				(AVALON_REG(AVALON_MX10_OFFSET))
 //-------------------------------------------------------
 
 
@@ -95,6 +102,8 @@ uint32_t	read_hex0(void);
 uint32_t	read_hex1(void);
 uint32_t	read_hex2(void);
 uint32_t	read_hex3(void);
+uint32_t	read_mx10_status(void);
+uint32_t	read_mx10_ready(void);
 
 // Prototypes des fonctions (écriture)
 void 		write_leds(uint32_t value);

@@ -43,6 +43,12 @@ uint32_t 	read_hex2(void) {
 uint32_t 	read_hex3(void) {
     return AVALON_GET_VALUE(AVALON_HEX_REG, AVALON_HEX3_MASK, AVALON_HEX3_SHIFT, AVALON_HEX3_INVERSE_VALUE);
 }
+uint32_t	read_mx10_status(void){
+    return AVALON_GET_VALUE(AVALON_MX10_REG, AVALON_MX10_STATUS_MASK, AVALON_MX10_STATUS_SHIFT, AVALON_MX10_STATUS_INVERSE_VALUE);
+}
+uint32_t	read_mx10_ready(void){
+    return AVALON_GET_VALUE(AVALON_MX10_REG, AVALON_MX10_READY_MASK, AVALON_MX10_READY_SHIFT, AVALON_MX10_READY_INVERSE_VALUE);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 void 		write_leds(uint32_t value) {

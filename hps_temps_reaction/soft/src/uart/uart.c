@@ -34,10 +34,19 @@ void enable_fifo(uint32_t base) {
 }
 
 // Vérification du buffer de transmission prêt
-void write_uart(uint32_t base, uint8_t data) {
+void write_char_uart(uint32_t base, uint8_t data){
     // Attendre que le buffer de transmission soit vide
     while (!(UART_REG(base, UART_LSR_OFFSET) & (1 << 5)));
     // Envoyer les données
     UART_REG(base, UART_DLL_OFFSET) = data;
 }
+
+void write_str_uart(uint32_t base, const char* data){
+	int i = 0;
+    while (*(data + i)) {
+    	write_char_uart(base, *(data + i));
+        ++i;
+    }
+}
+
 
