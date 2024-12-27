@@ -34,7 +34,12 @@ const char* app_description =
 
 
 
-//--------------Prototype local functions-----------------
+//-----------------IMPLEMENTATION ISRs--------------------
+void fpga_ISR(void){
+    printf("Interruption FPGA KEY0 (status : %lX) ! \n", read_itp_status());
+    write_itp_clear();
+    printf("After clear (status : %lX) ! \n", read_itp_status());
+}
 //--------------------------------------------------------
 
 
@@ -65,7 +70,7 @@ void app_initialize(){
     app_init_uart();
 
     //Initialisation des interuption
-    //app_init_interrupt();
+    app_init_interrupt();
 
     //Changement d'état
     app_change_state(APP_INIT);
@@ -93,6 +98,9 @@ void app(){
 	            printf("Constante ID : %lX\n", AXI_LW_REG(0));
 	            printf("USER ID : %lX\n", read_user_id());
 
+	            // Afficher via UART un message qui décrit comment utiliser l'app
+	            write_str_uart(UART0_BASE_ADD, app_description);
+
 	            // Lire status max 10
 	            /*if(read_mx10_status() != 1){
 	            	printf("Max10 status not valid : %d\n", read_mx10_status());
@@ -111,8 +119,6 @@ void app(){
 
 	            // Eteindre toutes les leds de la max10
 
-	            // Afficher via UART un message qui décrit comment utiliser l'app
-	            write_str_uart(UART0_BASE_ADD, app_description);
 
 	            //Changement d'état
 	            app_change_state(APP_WAIT);

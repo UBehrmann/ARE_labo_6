@@ -43,6 +43,9 @@ uint32_t 	read_hex2(void) {
 uint32_t 	read_hex3(void) {
     return AVALON_GET_VALUE(AVALON_HEX_REG, AVALON_HEX3_MASK, AVALON_HEX3_SHIFT, AVALON_HEX3_INVERSE_VALUE);
 }
+uint32_t	read_itp_status(void){
+	return AVALON_GET_VALUE(AVALON_ITP_STATUS_REG, AVALON_ITP_STATUS_MASK, AVALON_ITP_STATUS_SHIFT, AVALON_ITP_STATUS_INVERSE_VALUE);
+}
 uint32_t	read_mx10_status(void){
     return AVALON_GET_VALUE(AVALON_MX10_REG, AVALON_MX10_STATUS_MASK, AVALON_MX10_STATUS_SHIFT, AVALON_MX10_STATUS_INVERSE_VALUE);
 }
@@ -52,29 +55,32 @@ uint32_t	read_mx10_ready(void){
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 void 		write_leds(uint32_t value) {
-    AVALON_SET_VALUE(AVALON_LEDS_REG, AVALON_LEDS_MASK, AVALON_LEDS_SHIFT, value);
+    AVALON_SET_VALUE(AVALON_LEDS_REG, AVALON_LEDS_MASK, AVALON_LEDS_SHIFT, value, AVALON_LEDS_INVERSE_VALUE);
 }
 // Écriture dans hex0 à hex3
 void 		write_hex0(uint32_t value, bool isInt) {
     if (isInt && value >= 16) return;
     if (isInt && value < 15) value = int_to_hex[value]; // Conversion si nécessaire
-    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX0_MASK, AVALON_HEX0_SHIFT, value);
+    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX0_MASK, AVALON_HEX0_SHIFT, value, AVALON_HEX0_INVERSE_VALUE);
 }
 
 void 		write_hex1(uint32_t value, bool isInt) {
     if (isInt && value >= 16) return;
     if (isInt && value < 15) value = int_to_hex[value]; // Conversion si nécessaire
-    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX1_MASK, AVALON_HEX1_SHIFT, value);
+    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX1_MASK, AVALON_HEX1_SHIFT, value, AVALON_HEX1_INVERSE_VALUE);
 }
 
 void 		write_hex2(uint32_t value, bool isInt) {
     if (isInt && value >= 16) return;
     if (isInt && value < 15) value = int_to_hex[value]; // Conversion si nécessaire
-    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX2_MASK, AVALON_HEX2_SHIFT, value);
+    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX2_MASK, AVALON_HEX2_SHIFT, value, AVALON_HEX2_INVERSE_VALUE);
 }
 
 void 		write_hex3(uint32_t value, bool isInt) {
     if (isInt && value >= 16) return;
     if (isInt && value < 15) value = int_to_hex[value]; // Conversion si nécessaire
-    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX3_MASK, AVALON_HEX3_SHIFT, value);
+    AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX3_MASK, AVALON_HEX3_SHIFT, value, AVALON_HEX3_INVERSE_VALUE);
+}
+void		write_itp_clear(){
+	AVALON_SET_VALUE(AVALON_ITP_CLEAR_REG, AVALON_ITP_CLEAR_MASK, AVALON_ITP_CLEAR_SHIFT, 1, AVALON_ITP_CLEAR_INVERSE_VALUE);
 }

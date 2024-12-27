@@ -34,9 +34,6 @@
  * 2. provides code that sets the IRQ mode stack, and that dis/enables interrupts
  * 3. provides code that initializes the generic interrupt controller
 */
-void fpga_ISR(void){
-
-}
 
 // Define the IRQ exception handler
 void __attribute__ ((interrupt)) __cs3_isr_irq (void)

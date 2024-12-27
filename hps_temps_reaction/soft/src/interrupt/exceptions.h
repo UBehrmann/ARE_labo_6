@@ -22,7 +22,8 @@ void enable_A9_interrupts(void);
 void config_GIC(void);
 // Configurer une interruption spécifique dans le GIC
 void config_interrupt(int N, int CPU_target);
-
+// FPGA ISR
+void fpga_ISR(void);
 
 
 #endif /* SRC_EXCEPTIONS_H_ */
