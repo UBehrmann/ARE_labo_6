@@ -4,8 +4,10 @@ vlib work
 vmap work work
 
 #compile all file 
-vcom -reportprogress 300 -2008 -work work   ../src/compteur.vhd
-vcom -reportprogress 300 -2008 -work work   ../src/timer.vhd
+vcom -reportprogress 300 -2008 -work work   ../src/serial_async_transmitter.vhd
+vcom -reportprogress 300 -2008 -work work   ../src/counter_reaction.vhd
+vcom -reportprogress 300 -2008 -work work   ../src/counter_cycle.vhd
+vcom -reportprogress 300 -2008 -work work   ../src/baudrate_generator.vhd
 vcom -reportprogress 300 -2008 -work work   ../src/avl_user_interface.vhd
 
 # top_sim compilation
