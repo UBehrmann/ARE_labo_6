@@ -22,20 +22,19 @@
  * 
  *
 *****************************************************************************************/
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include "axi_lw.h"
-#include "uart/uart.h"
+#include "app.h"
 
-int __auto_semihosting;
+
 
 int main(void){
-
-    printf("Laboratoire: Mesurle du temps de reaction \n");
     
-    // TO BE COMPLETE
-    uint32_t uart_base = UART0_BASE_ADD;
+    app_initialize();
+
+    app();
+
+
+    //-----TEST : OK sa fonctionne
+    /*uint32_t uart_base = UART0_BASE_ADD;
 
     // Configurer le baudrate à 9600
     configure_baud_rate(uart_base, 100000000, 9600);
@@ -50,6 +49,6 @@ int main(void){
     const char *message = "Hello UART!";
     while (*message) {
         write_uart(uart_base, *message++);
-    }
+    }*/
 
 }

@@ -63,7 +63,8 @@
 void configure_baud_rate(uint32_t base, uint32_t clock_freq, uint32_t baudrate);
 void configure_line(uint32_t base);
 void enable_fifo(uint32_t base);
-void write_uart(uint32_t base, uint8_t data);
+void write_char_uart(uint32_t base, uint8_t data);
+void write_str_uart(uint32_t base, const char* data);
 
 
 
