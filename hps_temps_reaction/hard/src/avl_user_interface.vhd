@@ -119,7 +119,7 @@ architecture rtl of avl_user_interface is
 	CONSTANT LEDS_ADDRESS 					: INTEGER := 3;
 	CONSTANT HEX0_4_ADDRESS 				: INTEGER := 4;
 	CONSTANT INTERRUPT_MASK_ADDRESS 		: INTEGER := 6;
-	
+
 
 
 	
