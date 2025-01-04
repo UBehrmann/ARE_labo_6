@@ -40,8 +40,9 @@
 |                  | [20..14] hex2             | [20..14] hex2          |
 |                  | [13..7] hex1              | [13..7] hex1           |
 |                  | [6..0] hex0               | [6..0] hex0            |
-| 0x14             | [31..1] reserved          | [31..1] reserved       |
-|                  | [0] interrupt             | [0] clear interrupt    |
+| 0x14             | [31..2] reserved          | [31..1] reserved       |
+|                  | [1] interrupt             | [0] clear interrupt    |
+|                  | [0] statut flanc montant  |                        |
 | 0x18             | [31..1] reserved          | [31..1] reserved       |
 |                  | [0] interrupt mask        | [0] set interrupt mask |
 | 0x1C             | [31..1] reserved          | [31..0] reserved       |
