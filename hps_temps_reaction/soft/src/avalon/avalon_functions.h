@@ -24,7 +24,7 @@
 #define AVALON_ITP_STATUS_OFFSET			0x14
 #define AVALON_ITP_CLEAR_OFFSET				0x14
 #define AVALON_ITP_MASK_OFFSET				0x18
-#define AVALON_MX10_OFFSET					0x20
+#define AVALON_MX10_OFFSET				    0x20
 #define AVALON_MX10_CS_OFFSET				0x24
 #define AVALON_MX10_DATA_OFFSET				0x28
 #define AVALON_COUNTER_START_OFFSET			0x2C
@@ -46,6 +46,8 @@
 #define AVALON_ITP_CLEAR_MASK				0x00000001
 #define AVALON_MX10_STATUS_MASK				0x00000006
 #define AVALON_MX10_READY_MASK				0x00000001
+#define AVALON_MX10_CS_MASK                 0x0000000F
+#define AVALON_MX10_DATA_MASK               0x000000FF
 
 
 // Décalage des valeurs des registres
@@ -61,6 +63,9 @@
 #define AVALON_ITP_CLEAR_SHIFT				0
 #define AVALON_MX10_STATUS_SHIFT			1
 #define AVALON_MX10_READY_SHIFT				0
+#define AVALON_MX10_CS_SHIFT                0
+#define AVALON_MX10_DATA_SHIFT              0
+
 
 // Valeur normal (par défaut des registres)
 #define AVALON_USER_ID_INVERSE_VALUE		0
@@ -73,6 +78,8 @@
 #define AVALON_HEX3_INVERSE_VALUE 			1
 #define AVALON_ITP_STATUS_INVERSE_VALUE		0
 #define AVALON_ITP_CLEAR_INVERSE_VALUE		0
+#define AVALON_MX10_CS_INVERSE_VALUE        0
+#define AVALON_MX10_DATA_INVERSE_VALUE      0
 
 #define AVALON_MX10_STATUS_INVERSE_VALUE	0
 #define AVALON_MX10_READY_INVERSE_VALUE		0
@@ -89,7 +96,15 @@
 #define AVALON_ITP_STATUS_REG		(AVALON_REG(AVALON_ITP_STATUS_OFFSET))
 #define AVALON_ITP_CLEAR_REG		(AVALON_REG(AVALON_ITP_CLEAR_OFFSET))
 #define AVALON_ITP_MASK_REG			(AVALON_REG(AVALON_ITP_MASK_OFFSET))
-#define AVALON_MX10_REG				(AVALON_REG(AVALON_MX10_OFFSET))
+#define AVALON_MX10_REG		        (AVALON_REG(AVALON_MX10_OFFSET))
+#define AVALON_MX10_CS_REG			(AVALON_REG(AVALON_MX10_CS_OFFSET))
+#define AVALON_MX10_DATA_REG		(AVALON_REG(AVALON_MX10_DATA_OFFSET))
+#define AVALON_COUNTER_START_REG	(AVALON_REG(AVALON_COUNTER_START_OFFSET))
+#define AVALON_COUNTER_STOP_REG		(AVALON_REG(AVALON_COUNTER_STOP_OFFSET))
+#define AVALON_COUNTER_DELTA_REG	(AVALON_REG(AVALON_COUNTER_DELTA_OFFSET))
+#define AVALON_COUNTER_ERROR_REG	(AVALON_REG(AVALON_COUNTER_ERROR_OFFSET))
+#define AVALON_COUNTER_CYCLE_COUNT_REG	(AVALON_REG(AVALON_COUNTER_CYCLE_COUNT_OFFSET))
+
 //-------------------------------------------------------
 
 
@@ -134,6 +149,8 @@ void		write_hex1(uint32_t value, bool isInt);
 void		write_hex2(uint32_t value, bool isInt);
 void		write_hex3(uint32_t value, bool isInt);
 void		write_itp_clear();
+void        write_max10_cs(uint32_t value);
+void        write_max10_data(uint32_t value);
 
 //-------------------------------------------------------
 

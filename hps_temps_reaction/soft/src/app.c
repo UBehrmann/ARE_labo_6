@@ -64,7 +64,7 @@ void app_init_interrupt(){
 
 // Initializes registers as required
 void app_initialize(){
-    printf("Laboratoire: Mesurle du temps de reaction \n");
+    printf("Laboratoire: Mesure du temps de reaction \n");
 
     //Initialisation de l'UART
     app_init_uart();
@@ -118,7 +118,20 @@ void app(){
 	            write_hex3(0, true);
 
 	            // Eteindre toutes les leds de la max10
+				write_max10_cs(4);
+				write_max10_data(0);
 
+				write_max10_cs(5);
+				write_max10_data(0);
+
+				write_max10_cs(8);
+				write_max10_data(0);
+
+				write_max10_cs(9);
+				write_max10_data(0);
+
+				write_max10_cs(10);
+				write_max10_data(0);
 
 	            //Changement d'état
 	            app_change_state(APP_WAIT);
