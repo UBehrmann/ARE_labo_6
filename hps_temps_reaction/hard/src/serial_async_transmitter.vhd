@@ -18,7 +18,7 @@ architecture comport of serial_async_transmitter is
 	-- Constantes
    constant TOTAL_BITS		: integer := 22; -- 1 bit de start + 20 bits de données + 1 bit de stop
    -- États de la machine à états
-   type state_type is 		(IDLE, SYNC, START_BIT, DATA_BITS, STOP_BIT);
+   type state_type is 		(IDLE, START_BIT, DATA_BITS, STOP_BIT, END_COM);
    signal state       		: state_type := IDLE;
    signal state_fut   		: state_type := IDLE; -- Prochain état
    -- Signaux internes
@@ -26,6 +26,7 @@ architecture comport of serial_async_transmitter is
    signal bit_index   		: integer range 0 to TOTAL_BITS-1 := 0;
    signal tx_reg      		: STD_LOGIC := '1';
    signal data_buffer 		: STD_LOGIC_VECTOR (19 downto 0);
+	signal start_reg			: STD_LOGIC := '0';
    -- Instanciation du générateur de baudrate
    component baudrate_generator is
 		Port (
@@ -49,52 +50,60 @@ begin
 	process(clk, reset)
 	begin
    if reset = '1' then
-		state <= IDLE;
+		start_reg <= '0';
+		tx_busy <= '0';
+		data_buffer <= (OTHERS => '0');
    elsif rising_edge(clk) then
-		if state = IDLE and tx_start = '1' then
-			state <= SYNC; -- Transition depuis IDLE sans dépendre de baud_pulse
-		elsif baud_pulse = '1' then
-         state <= state_fut; -- Transition pour tous les autres états synchronisée sur baud_pulse
-      end if;
+		if tx_start = '1' then
+			start_reg <= '1';
+			tx_busy <= '1';
+			data_buffer <= data_in; -- Charger les données à transmettre
+		elsif state = END_COM then
+			start_reg <= '0';			
+		end if;
+		
    end if;
+	end process;
+	
+	process(baud_pulse, reset)
+	begin
+	if reset = '1' then	
+		state <= IDLE;
+	elsif rising_edge(baud_pulse) then
+		 state <= state_fut;
+	end if;
 	end process;
 
 	-- Processus pour la logique des états
-	process(state, tx_start, bit_index, data_buffer)
+	process(baud_pulse)
 	begin
-   state_fut <= state; -- Par défaut, l'état futur est l'état actuel
-   tx_reg <= '1';
-   tx_busy <= '0';
-
-   case state is
-		when IDLE =>
-			tx_busy <= '0'; -- UART prêt
-
-      when SYNC =>
-			data_buffer <= data_in; -- Charger les données à transmettre
-         bit_index <= 0;
-         tx_busy <= '1'; -- UART occupé
-         state_fut <= START_BIT; -- Pas de condition supplémentaire, car SYNC est géré par le processus d'état
-
-      when START_BIT =>
-         tx_reg <= '0'; -- Bit de start
-         state_fut <= DATA_BITS;
-
-      when DATA_BITS =>
-         tx_reg <= data_buffer(bit_index); -- Envoyer le bit courant
-         if bit_index < 19 then
-				bit_index <= bit_index + 1;
-         else
-            state_fut <= STOP_BIT;
-         end if;
-
-      when STOP_BIT =>
-         tx_reg <= '1'; -- Bit de stop
-         state_fut <= IDLE;
-         tx_busy <= '0'; -- UART de nouveau prêt
-
-   end case;
+	if rising_edge(baud_pulse) then
+		case state is
+			when IDLE =>
+				tx_reg <= '1';
+				bit_index <= 0;
+				if start_reg = '1' then
+					state_fut <= START_BIT; -- Pas de condition supplémentaire, car SYNC est géré par le processus d'état
+				end if;
+			when START_BIT =>
+				tx_reg <= '0'; -- Bit de start
+				state_fut <= DATA_BITS;
+			when DATA_BITS =>
+				tx_reg <= data_buffer(bit_index); -- Envoyer le bit courant
+				if bit_index < 19 then
+					bit_index <= bit_index + 1;
+				else
+					state_fut <= STOP_BIT;
+				end if;
+			when STOP_BIT =>
+				tx_reg <= '1'; -- Bit de stop
+				state_fut <= END_COM;
+			when END_COM =>
+				state_fut <= IDLE;
+		end case;
+	end if;
 	end process;
 
-   tx <= tx_reg;
+	tx <= tx_reg;
+		
 end comport;
