@@ -117,17 +117,17 @@ BEGIN
 		)
 	BEGIN
 		IF reset = '1' THEN
-			bit_index <= 0;
+			bit_index <= 19;
 		ELSIF rising_edge(baud_pulse) THEN
-		
+
 			bit_finished <= '0';
 
 			IF bit_start = '0' THEN
-				bit_index <= 0;
-			elsif bit_index = 19 THEN
+				bit_index <= 19;
+			elsif bit_index = 0 THEN
 				bit_finished <= '1';
 			else
-				bit_index <= bit_index + 1;
+				bit_index <= bit_index - 1;
 			END IF;
 			
 		END IF;
