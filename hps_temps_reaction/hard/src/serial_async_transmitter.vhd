@@ -1,109 +1,138 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.STD_LOGIC_ARITH.ALL;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity serial_async_transmitter is
-    Port (
-        clk       : in  STD_LOGIC;  -- Horloge système
-        reset     : in  STD_LOGIC;  -- Reset asynchrone
-        tx_start  : in  STD_LOGIC;  -- Signal pour démarrer la transmission
-        data_in   : in  STD_LOGIC_VECTOR (19 downto 0); -- Données à transmettre (20 bits)
-        tx        : out STD_LOGIC;  -- Ligne de transmission série
-        tx_busy   : out STD_LOGIC   -- Indicateur de transmission en cours
-    );
-end serial_async_transmitter;
+ENTITY serial_async_transmitter IS
+	PORT (
+		clk : IN STD_LOGIC; -- Horloge système
+		reset : IN STD_LOGIC; -- Reset asynchrone
+		tx_start : IN STD_LOGIC; -- Signal pour démarrer la transmission
+		data_in : IN STD_LOGIC_VECTOR (19 DOWNTO 0); -- Données à transmettre (20 bits)
+		tx : OUT STD_LOGIC; -- Ligne de transmission série
+		tx_busy : OUT STD_LOGIC -- Indicateur de transmission en cours
+	);
+END serial_async_transmitter;
 
-architecture comport of serial_async_transmitter is
+ARCHITECTURE comport OF serial_async_transmitter IS
 	-- Constantes
-   constant TOTAL_BITS		: integer := 22; -- 1 bit de start + 20 bits de données + 1 bit de stop
-   -- États de la machine à états
-   type state_type is 		(IDLE, START_BIT, DATA_BITS, STOP_BIT, END_COM);
-   signal state       		: state_type := IDLE;
-   signal state_fut   		: state_type := IDLE; -- Prochain état
-   -- Signaux internes
-   signal baud_pulse  		: STD_LOGIC; -- Impulsion du générateur de baudrate
-   signal bit_index   		: integer range 0 to TOTAL_BITS-1 := 0;
-   signal tx_reg      		: STD_LOGIC := '1';
-   signal data_buffer 		: STD_LOGIC_VECTOR (19 downto 0);
-	signal start_reg			: STD_LOGIC := '0';
-   -- Instanciation du générateur de baudrate
-   component baudrate_generator is
-		Port (
-			clk        : in  STD_LOGIC;  -- Horloge système
-			reset      : in  STD_LOGIC;  -- Reset asynchrone
-			baud_pulse : out STD_LOGIC   -- Impulsion de baudrate
+	CONSTANT TOTAL_BITS : INTEGER := 22; -- 1 bit de start + 20 bits de données + 1 bit de stop
+	-- États de la machine à états
+	TYPE state_type IS (IDLE, START_BIT, DATA_BITS, STOP_BIT, END_COM);
+	SIGNAL state : state_type := IDLE;
+	SIGNAL state_fut : state_type := IDLE; -- Prochain état
+	-- Signaux internes
+	SIGNAL baud_pulse : STD_LOGIC; -- Impulsion du générateur de baudrate
+	SIGNAL bit_index : INTEGER RANGE 0 TO TOTAL_BITS - 1 := 0;
+	SIGNAL tx_reg : STD_LOGIC := '1';
+	SIGNAL data_buffer : STD_LOGIC_VECTOR (19 DOWNTO 0);
+	SIGNAL start_reg : STD_LOGIC := '0';
+	SIGNAL bit_start : STD_LOGIC := '0';
+	SIGNAL bit_finished : STD_LOGIC := '0';
+	-- Instanciation du générateur de baudrate
+	COMPONENT baudrate_generator IS
+		PORT (
+			clk : IN STD_LOGIC; -- Horloge système
+			reset : IN STD_LOGIC; -- Reset asynchrone
+			baud_pulse : OUT STD_LOGIC -- Impulsion de baudrate
 		);
-   end component;
-	for all : baudrate_generator use entity work.baudrate_generator;
+	END COMPONENT;
+	FOR ALL : baudrate_generator USE ENTITY work.baudrate_generator;
 
-begin
+BEGIN
 	-- Instancier le générateur de baudrate
-   baudrate_gen : baudrate_generator
-   port map (
+	baudrate_gen : baudrate_generator
+	PORT MAP(
 		clk => clk,
 		reset => reset,
-      baud_pulse => baud_pulse
-   );
+		baud_pulse => baud_pulse
+	);
 
 	-- Processus pour gérer les transitions d'états
-	process(clk, reset)
-	begin
-   if reset = '1' then
-		start_reg <= '0';
-		tx_busy <= '0';
-		data_buffer <= (OTHERS => '0');
-   elsif rising_edge(clk) then
-		if tx_start = '1' then
-			start_reg <= '1';
-			tx_busy <= '1';
-			data_buffer <= data_in; -- Charger les données à transmettre
-		elsif state = END_COM then
-			start_reg <= '0';			
-		end if;
-		
-   end if;
-	end process;
-	
-	process(baud_pulse, reset)
-	begin
-	if reset = '1' then	
-		state <= IDLE;
-	elsif rising_edge(baud_pulse) then
-		 state <= state_fut;
-	end if;
-	end process;
+	PROCESS (clk, reset)
+	BEGIN
+		IF reset = '1' THEN
+			start_reg <= '0';
+			tx_busy <= '0';
+			data_buffer <= (OTHERS => '0');
+		ELSIF rising_edge(clk) THEN
+			IF tx_start = '1' THEN
+				start_reg <= '1';
+				tx_busy <= '1';
+				data_buffer <= data_in; -- Charger les données à transmettre
+			ELSIF state = END_COM THEN
+				start_reg <= '0';
+			END IF;
+
+		END IF;
+	END PROCESS;
+
+	PROCESS (
+		baud_pulse,
+		reset
+		)
+	BEGIN
+		IF reset = '1' THEN
+			state <= IDLE;
+		ELSIF rising_edge(baud_pulse) THEN
+			state <= state_fut;
+		END IF;
+	END PROCESS;
 
 	-- Processus pour la logique des états
-	process(baud_pulse)
-	begin
-	if rising_edge(baud_pulse) then
-		case state is
-			when IDLE =>
+	PROCESS (
+		state,
+		start_reg,
+		bit_finished,
+		bit_index
+		)
+	BEGIN
+		CASE state IS
+			WHEN IDLE =>
 				tx_reg <= '1';
-				bit_index <= 0;
-				if start_reg = '1' then
+				IF start_reg = '1' THEN
 					state_fut <= START_BIT; -- Pas de condition supplémentaire, car SYNC est géré par le processus d'état
-				end if;
-			when START_BIT =>
+				END IF;
+			WHEN START_BIT =>
 				tx_reg <= '0'; -- Bit de start
 				state_fut <= DATA_BITS;
-			when DATA_BITS =>
+			WHEN DATA_BITS =>
 				tx_reg <= data_buffer(bit_index); -- Envoyer le bit courant
-				if bit_index < 19 then
-					bit_index <= bit_index + 1;
-				else
+				bit_start <= '1'; -- Signal pour incrémenter l'index
+				IF bit_finished = '1' THEN
 					state_fut <= STOP_BIT;
-				end if;
-			when STOP_BIT =>
+					bit_start <= '0';
+				END IF;
+			WHEN STOP_BIT =>
 				tx_reg <= '1'; -- Bit de stop
 				state_fut <= END_COM;
-			when END_COM =>
+			WHEN END_COM =>
 				state_fut <= IDLE;
-		end case;
-	end if;
-	end process;
+		END CASE;
+	END PROCESS;
+
+	PROCESS (
+		baud_pulse,
+		reset
+		)
+	BEGIN
+		IF reset = '1' THEN
+			bit_index <= 0;
+		ELSIF rising_edge(baud_pulse) THEN
+		
+			bit_finished <= '0';
+
+			IF bit_start = '0' THEN
+				bit_index <= 0;
+			elsif bit_index = 19 THEN
+				bit_finished <= '1';
+			else
+				bit_index <= bit_index + 1;
+			END IF;
+			
+		END IF;
+	END PROCESS;
 
 	tx <= tx_reg;
-		
-end comport;
+
+END comport;

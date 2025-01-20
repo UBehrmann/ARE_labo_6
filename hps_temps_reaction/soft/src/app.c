@@ -119,19 +119,19 @@ void app(){
 
 	            // Eteindre toutes les leds de la max10
 				write_max10_cs(4);
-				write_max10_data(0);
+				write_max10_data(0xffff);
 
 				write_max10_cs(5);
-				write_max10_data(0);
+				write_max10_data(2);
 
 				write_max10_cs(8);
-				write_max10_data(0);
+				write_max10_data(4);
 
 				write_max10_cs(9);
-				write_max10_data(0);
+				write_max10_data(8);
 
 				write_max10_cs(10);
-				write_max10_data(0);
+				write_max10_data(16);
 
 	            //Changement d'état
 	            app_change_state(APP_WAIT);
