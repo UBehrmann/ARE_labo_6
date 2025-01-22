@@ -94,9 +94,17 @@ void app(){
 //------------------------State Machine------------------------
 	    switch (app_get_state()) {
 	        case APP_INIT:{
+	        	const char* max10_status_msg[3] = {
+	        			"Configuration non valide",
+						"Configuration valide",
+						"Configuration reserve"
+	        	};
+
 	            // Affichage des IDs
 	            printf("Constante ID : %lX\n", AXI_LW_REG(0));
 	            printf("USER ID : %lX\n", read_user_id());
+	            uint32_t max10_status = read_max10_status();
+	            printf("Max10 status : %d (%s)\n",max10_status, max10_status_msg[max10_status]);
 
 	            // Afficher via UART un message qui décrit comment utiliser l'app
 	            write_str_uart(UART0_BASE_ADD, app_description);
@@ -119,19 +127,19 @@ void app(){
 
 	            // Eteindre toutes les leds de la max10
 				write_max10_cs(4);
-				write_max10_data(1);
+				write_max10_data(16);
 
 				write_max10_cs(5);
-				write_max10_data(2);
+				write_max10_data(8);
 
 				write_max10_cs(8);
 				write_max10_data(4);
 
 				write_max10_cs(9);
-				write_max10_data(8);
+				write_max10_data(2);
 
 				write_max10_cs(10);
-				write_max10_data(16);
+				write_max10_data(1);
 
 	            //Changement d'état
 	            app_change_state(APP_WAIT);
