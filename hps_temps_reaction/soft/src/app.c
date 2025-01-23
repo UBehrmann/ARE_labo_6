@@ -14,15 +14,32 @@
 int __auto_semihosting;
 
 
+
+//---------------------Global defines--------------------
+#define MAX10_CS_LEDS_SEC_15_01					0
+#define MAX10_CS_LEDS_SEC_30_16					1
+#define MAX10_CS_LEDS_SEC_45_31					2
+#define MAX10_CS_LEDS_SEC_60_46					3
+#define MAX10_CS_LEDS_LINE_15_00				4
+#define MAX10_CS_LEDS_LINE_31_16				5
+#define MAX10_CS_LEDS_SQUARE_35t31_25t21_15t11	6
+#define MAX10_CS_LEDS_SQUARE_55t51_45t41		7
+#define MAX10_CS_LEDS_HOUR_04_01				8
+#define MAX10_CS_LEDS_HOUR_08_05				9
+#define MAX10_CS_LEDS_HOUR_12_09				10
+//-------------------------------------------------------
+
+
+
 //-----------------Global state variable-----------------
 App_State state;
 const char* app_description =
 		"Bienvenue dans l'application de mesure du temps de réaction !\n\n"
 		"Instructions :\n"
-		"1. Pour démarrer une mesure, appuyez sur le bouton KEY1.\n"
-		"2. Attendez l'apparition du symbole de début sur le carré de LEDs.\n"
-		"3. Dès qu'il apparaît, appuyez sur KEY0 le plus rapidement possible pour stopper la mesure.\n"
-		"4. Consultez le résultat sur les afficheurs 7 segments et dans la console UART.\n\n"
+		"1.Pour démarrer une mesure, appuyez sur le bouton KEY1.\n"
+		"2.Attendez l'apparition du symbole de début sur le carré de LEDs.\n"
+		"3.Dès qu'il apparaît, appuyez sur KEY0 le plus rapidement possible pour stopper la mesure.\n"
+		"4.Consultez le résultat sur les afficheurs 7 segments et dans la console UART.\n\n"
 		"Options supplémentaires via les interrupteurs (SW3-0) :\n"
 		"- SW0=1 : Meilleur temps de réaction (ms).\n"
 		"- SW1=1 : Plus mauvais temps de réaction (ms).\n"
@@ -30,6 +47,25 @@ const char* app_description =
 		"- SW3=1 : Nombre total de tentatives.\n"
 		"- SWx=0 : Dernier temps de réaction (ms).\n\n"
 		"Bonne chance et amusez-vous !\n";
+const char* max10_status_msg[4] = {
+		"Configuration non valide",
+		"Configuration valide",
+		"Configuration reserve",
+		"Configuration reserve",
+};
+uint32_t max10_cs_values[] = {
+		MAX10_CS_LEDS_SEC_15_01,
+		MAX10_CS_LEDS_SEC_30_16,
+		MAX10_CS_LEDS_SEC_45_31,
+		MAX10_CS_LEDS_SEC_60_46,
+		MAX10_CS_LEDS_LINE_15_00,
+		MAX10_CS_LEDS_LINE_31_16,
+		MAX10_CS_LEDS_SQUARE_35t31_25t21_15t11,
+		MAX10_CS_LEDS_SQUARE_55t51_45t41,
+		MAX10_CS_LEDS_HOUR_04_01,
+		MAX10_CS_LEDS_HOUR_08_05,
+		MAX10_CS_LEDS_HOUR_12_09
+};
 //-------------------------------------------------------
 
 
@@ -94,27 +130,17 @@ void app(){
 //------------------------State Machine------------------------
 	    switch (app_get_state()) {
 	        case APP_INIT:{
-	        	const char* max10_status_msg[3] = {
-	        			"Configuration non valide",
-						"Configuration valide",
-						"Configuration reserve"
-	        	};
-
 	            // Affichage des IDs
 	            printf("Constante ID : %lX\n", AXI_LW_REG(0));
 	            printf("USER ID : %lX\n", read_user_id());
 	            uint32_t max10_status = read_max10_status();
 	            printf("Max10 status : %d (%s)\n",max10_status, max10_status_msg[max10_status]);
+	            if(max10_status != 1){
+	            	printf("End of programm\n");
+	            }
 
 	            // Afficher via UART un message qui décrit comment utiliser l'app
 	            write_str_uart(UART0_BASE_ADD, app_description);
-
-	            // Lire status max 10
-	            /*if(read_mx10_status() != 1){
-	            	printf("Max10 status not valid : %d\n", read_mx10_status());
-	            	printf("End of programm\n");
-	            	//return;
-	            }*/
 
 	            // Eteindre les leds
 	            write_leds(0);
@@ -126,20 +152,11 @@ void app(){
 	            write_hex3(0, true);
 
 	            // Eteindre toutes les leds de la max10
-				write_max10_cs(4);
-				write_max10_data(16);
-
-				write_max10_cs(5);
-				write_max10_data(8);
-
-				write_max10_cs(8);
-				write_max10_data(4);
-
-				write_max10_cs(9);
-				write_max10_data(2);
-
-				write_max10_cs(10);
-				write_max10_data(1);
+	            uint8_t nb_max10_cs = (sizeof(max10_cs_values)/sizeof(max10_cs_values[0]));
+				for(uint8_t i; i < nb_max10_cs; i++){
+					write_max10_cs(max10_cs_values[i]);
+					write_max10_data(0);
+				}
 
 	            //Changement d'état
 	            app_change_state(APP_WAIT);

@@ -111,13 +111,13 @@ architecture rtl of avl_user_interface is
 	CONSTANT CNT_CYC_COUNT_ADDRESS		: INTEGER := 15;
 	-- ADDRESS (WRITE ONLY)
 	CONSTANT INTERRUPT_CLEAR_ADDRESS 	: INTEGER := 5;
-	CONSTANT MAX10_CS_ADDRESS 				: INTEGER := 9;
-	CONSTANT MAX10_DATA_ADDRESS 			: INTEGER := 10;
 	CONSTANT CNT_START_ADDRESS				: INTEGER := 11;
 	CONSTANT CNT_STOP_ADDRESS				: INTEGER := 12;
 	-- ADDRESS (READ/WRITE)
 	CONSTANT LEDS_ADDRESS 					: INTEGER := 3;
 	CONSTANT HEX0_4_ADDRESS 				: INTEGER := 4;
+	CONSTANT MAX10_CS_ADDRESS 				: INTEGER := 9;
+	CONSTANT MAX10_DATA_ADDRESS 			: INTEGER := 10;
 	CONSTANT INTERRUPT_MASK_ADDRESS 		: INTEGER := 6;
 
 
@@ -167,11 +167,15 @@ architecture rtl of avl_user_interface is
 	SIGNAL max10_tx_busy_s					: STD_LOGIC_VECTOR(1 DOWNTO 0);
 	SIGNAL cs_r_max10_tx_busy_s			: STD_LOGIC;
 	SIGNAL max10_cs_s							: STD_LOGIC_VECTOR(3 DOWNTO 0);
+	
 	SIGNAL cs_w_max10_cs_s					: STD_LOGIC;
+	SIGNAL cs_r_max10_cs_s					: STD_LOGIC;
 	SIGNAL max10_cs_reg_s					: STD_LOGIC_VECTOR(3 DOWNTO 0);
 	SIGNAL cs_w_max10_cs_reg_s				: STD_LOGIC;
 	SIGNAL max10_data_s						: STD_LOGIC_VECTOR(15 DOWNTO 0);
+	
 	SIGNAL cs_w_max10_data_s				: STD_LOGIC;
+	SIGNAL cs_r_max10_data_s				: STD_LOGIC;
 	SIGNAL max10_data_reg_s					: STD_LOGIC_VECTOR(15 DOWNTO 0);
 	SIGNAL cs_w_max10_data_reg_s			: STD_LOGIC;
 	--Counteur
@@ -323,6 +327,8 @@ begin
 	cs_r_cnt_delta_s				<= '0';
 	cs_r_cnt_error_cnt_s			<= '0';
 	cs_r_cnt_cyc_count_s			<= '0';
+	cs_r_max10_cs_s 				<= '0';
+	cs_r_max10_data_s 			<= '0';
 	
 	IF avl_read_i = '1' THEN
 	   readdatavalid_next_s 	<= '1';
@@ -351,6 +357,10 @@ begin
 				cs_r_cnt_error_cnt_s	<= '1';
 			WHEN CNT_CYC_COUNT_ADDRESS =>
 				cs_r_cnt_cyc_count_s	<= '1';
+			WHEN MAX10_CS_ADDRESS =>
+				cs_r_max10_cs_s 		<= '1';
+			WHEN MAX10_DATA_ADDRESS =>
+				cs_r_max10_data_s 	<= '1';
         WHEN OTHERS =>
           NULL;
 		END CASE;
@@ -398,18 +408,20 @@ begin
 	------------------------------------------------------
 	-- READ
 	------------------------------------------------------
-	readdata_next_s 	<= INTERFACE_ID_C                                				WHEN (cs_r_id_s = '1')     		ELSE
-								std_logic_vector((31 downto 4 => '0') & boutton_reg_s) 	WHEN (cs_r_boutton_s = '1') 		ELSE
-								std_logic_vector((31 downto 10 => '0') & switches_reg_s) WHEN (cs_r_switches_s = '1') 		ELSE
-								std_logic_vector((31 downto 10 => '0') & led_reg_s) 		WHEN (cs_r_leds_s = '1') 			ELSE
-								std_logic_vector((31 downto 28 => '0') & hex_0_4_reg_s) 	WHEN (cs_r_hex_0_4_s = '1') 		ELSE
-								std_logic_vector((31 downto 2 => '0') & itp_mask_s) 		WHEN (cs_r_itp_mask_s = '1') 		ELSE
-								std_logic_vector((31 downto 2 => '0') & itp_status_s) 	WHEN (cs_r_itp_status_s = '1')	ELSE
-								std_logic_vector((31 downto 2 => '0') & max10_status_s) 	WHEN (cs_r_max10_status_s = '1')	ELSE
-								std_logic_vector((31 downto 2 => '0') & max10_tx_busy_s) WHEN (cs_r_max10_tx_busy_s = '1')ELSE
-								cnt_delta_s																WHEN (cs_r_cnt_delta_s = '1') 	ELSE
-								cnt_error_cnt_s														WHEN (cs_r_cnt_error_cnt_s = '1')ELSE
-								cnt_cyc_count_s														WHEN (cs_r_cnt_cyc_count_s = '1')ELSE
+	readdata_next_s 	<= INTERFACE_ID_C                                					WHEN (cs_r_id_s = '1')     		ELSE
+								std_logic_vector((31 downto 4 => '0') & boutton_reg_s) 		WHEN (cs_r_boutton_s = '1') 		ELSE
+								std_logic_vector((31 downto 10 => '0') & switches_reg_s) 	WHEN (cs_r_switches_s = '1') 		ELSE
+								std_logic_vector((31 downto 10 => '0') & led_reg_s) 			WHEN (cs_r_leds_s = '1') 			ELSE
+								std_logic_vector((31 downto 28 => '0') & hex_0_4_reg_s) 		WHEN (cs_r_hex_0_4_s = '1') 		ELSE
+								std_logic_vector((31 downto 2 => '0') & itp_mask_s) 			WHEN (cs_r_itp_mask_s = '1') 		ELSE
+								std_logic_vector((31 downto 2 => '0') & itp_status_s) 		WHEN (cs_r_itp_status_s = '1')	ELSE
+								cnt_delta_s																	WHEN (cs_r_cnt_delta_s = '1') 	ELSE
+								cnt_error_cnt_s															WHEN (cs_r_cnt_error_cnt_s = '1')ELSE
+								cnt_cyc_count_s															WHEN (cs_r_cnt_cyc_count_s = '1')ELSE
+								std_logic_vector((31 downto 2 => '0') & max10_status_s) 		WHEN (cs_r_max10_status_s = '1')	ELSE
+								std_logic_vector((31 downto 2 => '0') & max10_tx_busy_s) 	WHEN (cs_r_max10_tx_busy_s = '1')ELSE
+								std_logic_vector((31 downto 16 => '0') & max10_data_reg_s)	WHEN (cs_r_max10_data_s = '1')	ELSE
+								std_logic_vector((31 downto 4=> '0') & max10_cs_reg_s)		WHEN (cs_r_max10_cs_s = '1')		ELSE
 								(OTHERS => '0');
 
 								

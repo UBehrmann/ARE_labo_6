@@ -102,6 +102,7 @@ void        write_max10_cs(uint32_t value){
 }
 void        write_max10_data(uint32_t value){
     AVALON_SET_VALUE(AVALON_MX10_DATA_REG, AVALON_MX10_DATA_MASK, AVALON_MX10_DATA_SHIFT, value, AVALON_MX10_DATA_INVERSE_VALUE);
+    while (read_max10_tx_busy()) ;
 }
 //-------------------------------------------------------------
 
