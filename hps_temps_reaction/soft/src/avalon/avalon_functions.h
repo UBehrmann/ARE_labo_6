@@ -27,10 +27,12 @@
 #define AVALON_ITP_STATUS_OFFSET			0x14
 #define AVALON_ITP_CLEAR_OFFSET				0x14
 #define AVALON_ITP_MASK_OFFSET				0x18
+//-------------------
 #define AVALON_COUNTER_START_OFFSET			0x2C
 #define AVALON_COUNTER_STOP_OFFSET			0x30
 #define AVALON_COUNTER_DELTA_OFFSET			0x34
-#define AVALON_COUNTER_ERROR_OFFSET			0x38
+#define AVALON_COUNTER_ERROR_COUNT_OFFSET	0x38
+//-------------------
 #define AVALON_COUNTER_CYCLE_COUNT_OFFSET	0x3C
 //-------------------
 #define AVALON_MX10_STATUS_OFFSET			0x1C
@@ -52,6 +54,13 @@
 #define AVALON_ITP_STATUS_MASK				0x00000003
 #define AVALON_ITP_CLEAR_MASK				0x00000001
 //-------------------
+#define AVALON_COUNTER_START_MASK			0x00000001
+#define AVALON_COUNTER_STOP_MASK			0x00000001
+#define AVALON_COUNTER_DELTA_MASK			0xFFFFFFFF
+#define AVALON_COUNTER_ERROR_COUNT_MASK		0xFFFFFFFF
+//-------------------
+#define AVALON_COUNTER_CYCLE_COUNT_MASK		0xFFFFFFFF
+//-------------------
 #define AVALON_MX10_STATUS_MASK				0x00000003
 #define AVALON_MX10_TX_BUSY_MASK			0x00000001
 #define AVALON_MX10_CS_MASK                 0x0000000F
@@ -71,6 +80,13 @@
 #define AVALON_ITP_STATUS_SHIFT				0
 #define AVALON_ITP_CLEAR_SHIFT				0
 //-------------------
+#define AVALON_COUNTER_START_SHIFT			0
+#define AVALON_COUNTER_STOP_SHIFT			0
+#define AVALON_COUNTER_DELTA_SHIFT			0
+#define AVALON_COUNTER_ERROR_COUNT_SHIFT	0
+//-------------------
+#define AVALON_COUNTER_CYCLE_COUNT_SHIFT	0
+//-------------------
 #define AVALON_MX10_STATUS_SHIFT			0
 #define AVALON_MX10_TX_BUSY_SHIFT			0
 #define AVALON_MX10_CS_SHIFT                0
@@ -89,6 +105,13 @@
 #define AVALON_HEX3_INVERSE_VALUE 			1
 #define AVALON_ITP_STATUS_INVERSE_VALUE		0
 #define AVALON_ITP_CLEAR_INVERSE_VALUE		0
+//-------------------
+#define AVALON_COUNTER_START_INVERSE_VALUE	0
+#define AVALON_COUNTER_STOP_INVERSE_VALUE	0
+#define AVALON_COUNTER_DELTA_INVERSE_VALUE	0
+#define AVALON_COUNTER_ERROR_COUNT_INVERSE_VALUE	0
+//-------------------
+#define AVALON_COUNTER_CYCLE_COUNT_INVERSE_VALUE	0
 //-------------------
 #define AVALON_MX10_STATUS_INVERSE_VALUE	0
 #define AVALON_MX10_TX_BUSY_INVERSE_VALUE	0
@@ -111,7 +134,14 @@
 #define AVALON_COUNTER_START_REG	(AVALON_REG(AVALON_COUNTER_START_OFFSET))
 #define AVALON_COUNTER_STOP_REG		(AVALON_REG(AVALON_COUNTER_STOP_OFFSET))
 #define AVALON_COUNTER_DELTA_REG	(AVALON_REG(AVALON_COUNTER_DELTA_OFFSET))
-#define AVALON_COUNTER_ERROR_REG	(AVALON_REG(AVALON_COUNTER_ERROR_OFFSET))
+#define AVALON_COUNTER_ERROR_COUNT_REG	(AVALON_REG(AVALON_COUNTER_ERROR_COUNT_OFFSET))
+#define AVALON_COUNTER_CYCLE_COUNT_REG	(AVALON_REG(AVALON_COUNTER_CYCLE_COUNT_OFFSET))
+//-------------------
+#define AVALON_COUNTER_START_REG	(AVALON_REG(AVALON_COUNTER_START_OFFSET))
+#define AVALON_COUNTER_STOP_REG		(AVALON_REG(AVALON_COUNTER_STOP_OFFSET))
+#define AVALON_COUNTER_DELTA_REG	(AVALON_REG(AVALON_COUNTER_DELTA_OFFSET))
+#define AVALON_COUNTGR_ERROR_REF	(AVALON_REG(AVALON_COUNTGR_ERROR_OFFSET))
+//-------------------
 #define AVALON_COUNTER_CYCLE_COUNT_REG	(AVALON_REG(AVALON_COUNTER_CYCLE_COUNT_OFFSET))
 //-------------------
 #define AVALON_MX10_STATUS_REG		(AVALON_REG(AVALON_MX10_STATUS_OFFSET))
@@ -156,6 +186,11 @@ uint32_t	read_hex2(void);
 uint32_t	read_hex3(void);
 uint32_t	read_itp_status(void);
 //-------------------
+uint32_t	read_counter_delta(void);
+uint32_t	read_counter_error_count(void);
+//-------------------
+uint32_t	read_counter_cycle_count(void);
+//-------------------
 uint32_t	read_max10_status(void);
 uint32_t	read_max10_tx_busy(void);
 uint32_t	read_max10_cs(void);
@@ -170,6 +205,9 @@ void		write_hex1(uint32_t value, bool isInt);
 void		write_hex2(uint32_t value, bool isInt);
 void		write_hex3(uint32_t value, bool isInt);
 void		write_itp_clear();
+//-------------------
+void        write_counteur_start(uint32_t value);
+void        write_counteur_stop(uint32_t value);
 //-------------------
 void        write_max10_cs(uint32_t value);
 void        write_max10_data(uint32_t value);

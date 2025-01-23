@@ -49,6 +49,17 @@ uint32_t	read_itp_status(void){
 	return AVALON_GET_VALUE(AVALON_ITP_STATUS_REG, AVALON_ITP_STATUS_MASK, AVALON_ITP_STATUS_SHIFT, AVALON_ITP_STATUS_INVERSE_VALUE);
 }
 //-------------------------------------------------------------
+uint32_t	read_counter_delta(void){
+    return AVALON_GET_VALUE(AVALON_COUNTER_DELTA_REG, AVALON_COUNTER_DELTA_MASK, AVALON_COUNTER_DELTA_SHIFT, AVALON_COUNTER_DELTA_INVERSE_VALUE);
+}
+uint32_t	read_counter_error_count(void){
+    return AVALON_GET_VALUE(AVALON_COUNTER_ERROR_COUNT_REG, AVALON_COUNTER_ERROR_COUNT_MASK, AVALON_COUNTER_ERROR_COUNT_SHIFT, AVALON_COUNTER_ERROR_COUNT_INVERSE_VALUE);
+}
+//-------------------------------------------------------------
+uint32_t	read_counter_cycle_count(void){
+    return AVALON_GET_VALUE(AVALON_COUNTER_CYCLE_COUNT_REG, AVALON_COUNTER_CYCLE_COUNT_MASK, AVALON_COUNTER_CYCLE_COUNT_SHIFT, AVALON_COUNTER_CYCLE_COUNT_INVERSE_VALUE);
+}
+//-------------------------------------------------------------
 uint32_t	read_max10_status(void){
     return AVALON_GET_VALUE(AVALON_MX10_STATUS_REG, AVALON_MX10_STATUS_MASK, AVALON_MX10_STATUS_SHIFT, AVALON_MX10_STATUS_INVERSE_VALUE);
 }
@@ -97,12 +108,19 @@ void		write_itp_clear(){
 	AVALON_SET_VALUE(AVALON_ITP_CLEAR_REG, AVALON_ITP_CLEAR_MASK, AVALON_ITP_CLEAR_SHIFT, 1, AVALON_ITP_CLEAR_INVERSE_VALUE);
 }
 //-------------------------------------------------------------
+void        write_counteur_start(uint32_t value){
+    AVALON_SET_VALUE(AVALON_COUNTER_START_REG, AVALON_COUNTER_START_MASK, AVALON_COUNTER_START_SHIFT, value, AVALON_COUNTER_START_INVERSE_VALUE);
+}
+void        write_counteur_stop(uint32_t value){
+    AVALON_SET_VALUE(AVALON_COUNTER_STOP_REG, AVALON_COUNTER_STOP_MASK, AVALON_COUNTER_STOP_SHIFT, value, AVALON_COUNTER_STOP_INVERSE_VALUE);
+}
+//-------------------------------------------------------------
 void        write_max10_cs(uint32_t value){
     AVALON_SET_VALUE(AVALON_MX10_CS_REG, AVALON_MX10_CS_MASK, AVALON_MX10_CS_SHIFT, value, AVALON_MX10_CS_INVERSE_VALUE);
 }
 void        write_max10_data(uint32_t value){
     AVALON_SET_VALUE(AVALON_MX10_DATA_REG, AVALON_MX10_DATA_MASK, AVALON_MX10_DATA_SHIFT, value, AVALON_MX10_DATA_INVERSE_VALUE);
-    while (read_max10_tx_busy()) ;
+    while (AVALON_GET_VALUE(AVALON_MX10_TX_BUSY_REG, AVALON_MX10_TX_BUSY_MASK, AVALON_MX10_TX_BUSY_SHIFT, AVALON_MX10_TX_BUSY_INVERSE_VALUE)) {}
 }
 //-------------------------------------------------------------
 
