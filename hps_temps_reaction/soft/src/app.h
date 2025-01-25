@@ -21,6 +21,14 @@
 //------------------------DEFINE-------------------------
 #define NB_KEYS 3
 #define NB_SWITCHES 10
+#define SYS_FREQUENCY 50000000
+#define CLOCK_FREQUENCY 50000000 // 50 MHz
+//-------------------------------------------------------
+
+
+
+//------------------------MACROS-------------------------
+#define TICKS_TO_MILLISECONDS(ticks) ((ticks) / (CLOCK_FREQUENCY / 1000))
 //-------------------------------------------------------
 
 
@@ -31,7 +39,8 @@ typedef enum {
     APP_INIT,
 
     APP_WAIT,
-	APP_TASK,
+	APP_START_GAME,
+	APP_INIT_GAME,
 
 	APP_ERROR
 } App_State;
@@ -52,6 +61,15 @@ typedef struct {
 	Keys_values keys;
 	Switches_values switches;
 } App_Inputs;
+typedef struct {
+	uint32_t best_time;
+	uint32_t worst_time;
+	uint32_t last_time;
+} Game_times;
+typedef struct {
+	uint32_t errors_count;
+	uint32_t trys_count;
+} Game_stats;
 //-------------------------------------------------------
 
 

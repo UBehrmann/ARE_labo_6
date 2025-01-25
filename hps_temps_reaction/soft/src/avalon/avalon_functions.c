@@ -45,8 +45,12 @@ uint32_t 	read_hex2(void) {
 uint32_t 	read_hex3(void) {
     return AVALON_GET_VALUE(AVALON_HEX_REG, AVALON_HEX3_MASK, AVALON_HEX3_SHIFT, AVALON_HEX3_INVERSE_VALUE);
 }
+//-------------------------------------------------------------
 uint32_t	read_itp_status(void){
 	return AVALON_GET_VALUE(AVALON_ITP_STATUS_REG, AVALON_ITP_STATUS_MASK, AVALON_ITP_STATUS_SHIFT, AVALON_ITP_STATUS_INVERSE_VALUE);
+}
+uint32_t	read_itp_mask(void){
+	return AVALON_GET_VALUE(AVALON_ITP_MASK_REG, AVALON_ITP_MASK_MASK, AVALON_ITP_MASK_SHIFT, AVALON_ITP_MASK_INVERSE_VALUE);
 }
 //-------------------------------------------------------------
 uint32_t	read_counter_delta(void){
@@ -55,9 +59,16 @@ uint32_t	read_counter_delta(void){
 uint32_t	read_counter_error_count(void){
     return AVALON_GET_VALUE(AVALON_COUNTER_ERROR_COUNT_REG, AVALON_COUNTER_ERROR_COUNT_MASK, AVALON_COUNTER_ERROR_COUNT_SHIFT, AVALON_COUNTER_ERROR_COUNT_INVERSE_VALUE);
 }
+uint32_t	read_counter_trys_count(void){
+	return AVALON_GET_VALUE(AVALON_COUNTER_TRYS_COUNT_REG, AVALON_COUNTER_TRYS_COUNT_MASK, AVALON_COUNTER_TRYS_COUNT_SHIFT, AVALON_COUNTER_TRYS_COUNT_INVERSE_VALUE);
+}
 //-------------------------------------------------------------
 uint32_t	read_counter_cycle_count(void){
     return AVALON_GET_VALUE(AVALON_COUNTER_CYCLE_COUNT_REG, AVALON_COUNTER_CYCLE_COUNT_MASK, AVALON_COUNTER_CYCLE_COUNT_SHIFT, AVALON_COUNTER_CYCLE_COUNT_INVERSE_VALUE);
+}
+//-------------------------------------------------------------
+uint32_t 	read_counter_spt_finished(void) {
+	return AVALON_GET_VALUE(AVALON_COUNTER_SPT_FINISHED_REG, AVALON_COUNTER_SPT_FINISHED_MASK, AVALON_COUNTER_SPT_FINISHED_SHIFT, AVALON_COUNTER_SPT_FINISHED_INVERSE_VALUE);
 }
 //-------------------------------------------------------------
 uint32_t	read_max10_status(void){
@@ -104,8 +115,12 @@ void 		write_hex3(uint32_t value, bool isInt) {
     if (isInt && value < 15) value = int_to_hex[value]; // Conversion si nécessaire
     AVALON_SET_VALUE(AVALON_HEX_REG, AVALON_HEX3_MASK, AVALON_HEX3_SHIFT, value, AVALON_HEX3_INVERSE_VALUE);
 }
+//-------------------------------------------------------------
 void		write_itp_clear(){
 	AVALON_SET_VALUE(AVALON_ITP_CLEAR_REG, AVALON_ITP_CLEAR_MASK, AVALON_ITP_CLEAR_SHIFT, 1, AVALON_ITP_CLEAR_INVERSE_VALUE);
+}
+void		write_itp_mask(uint32_t value){
+	AVALON_SET_VALUE(AVALON_ITP_MASK_REG, AVALON_ITP_MASK_MASK, AVALON_ITP_MASK_SHIFT, value, AVALON_ITP_MASK_INVERSE_VALUE);
 }
 //-------------------------------------------------------------
 void        write_counteur_start(uint32_t value){
@@ -113,6 +128,16 @@ void        write_counteur_start(uint32_t value){
 }
 void        write_counteur_stop(uint32_t value){
     AVALON_SET_VALUE(AVALON_COUNTER_STOP_REG, AVALON_COUNTER_STOP_MASK, AVALON_COUNTER_STOP_SHIFT, value, AVALON_COUNTER_STOP_INVERSE_VALUE);
+}
+//-------------------------------------------------------------
+void		write_counteur_spt_start(uint32_t value){
+    AVALON_SET_VALUE(AVALON_COUNTER_SPT_START_REG, AVALON_COUNTER_SPT_START_MASK, AVALON_COUNTER_SPT_START_SHIFT, value, AVALON_COUNTER_SPT_START_INVERSE_VALUE);
+}
+void		write_counteur_spt_stop(uint32_t value){
+    AVALON_SET_VALUE(AVALON_COUNTER_SPT_STOP_REG, AVALON_COUNTER_SPT_STOP_MASK, AVALON_COUNTER_SPT_STOP_SHIFT, value, AVALON_COUNTER_SPT_STOP_INVERSE_VALUE);
+}
+void		write_counteur_spt_setpoint(uint32_t value){
+    AVALON_SET_VALUE(AVALON_COUNTER_SPT_SETPOINT_REG, AVALON_COUNTER_SPT_SETPOINT_MASK, AVALON_COUNTER_SPT_SETPOINT_SHIFT, value, AVALON_COUNTER_SPT_SETPOINT_INVERSE_VALUE);
 }
 //-------------------------------------------------------------
 void        write_max10_cs(uint32_t value){
