@@ -29,6 +29,7 @@
 
 //------------------------MACROS-------------------------
 #define TICKS_TO_MILLISECONDS(ticks) ((ticks) / (CLOCK_FREQUENCY / 1000))
+#define MILLISECONDS_TO_TICKS(ms) ((ms) * (CLOCK_FREQUENCY / 1000))
 //-------------------------------------------------------
 
 

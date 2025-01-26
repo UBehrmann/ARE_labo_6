@@ -4,6 +4,7 @@
 #include "axi_lw.h"
 #include "uart/uart.h"
 #include "interrupt/exceptions.h"
+#include "time.h"
 
 // Printf
 int __auto_semihosting;
@@ -108,6 +109,8 @@ void display_game_data();
 //-----------------------
 uint32_t 	convert_max10_leds_square_value(uint32_t cs_square, bool* square_value);
 uint32_t 	convert_counteur_delta_to_time(uint32_t counteur_delta);
+uint32_t 	convert_time_to_counteur_delta(uint32_t time);
+void		wait_ms(uint32_t ms);
 void 		turn_off_hour_leds();
 void 		split_digits(uint32_t value, uint8_t* digits_tb, size_t size);
 //--------------------------------------------------------
@@ -226,6 +229,9 @@ void app(){
 	            printf("Max10 status : %d (%s)\n",max10_status, max10_status_msg[max10_status]);
 	            if(max10_status != 1){
 	            	printf("End of programm\n");
+		            //Changement d'état
+		            app_change_state(APP_ERROR);
+		            break;
 	            }
 
 	            // Afficher via UART un message qui décrit comment utiliser l'app
@@ -249,6 +255,8 @@ void app(){
 					}
 					write_max10_cs(max10_cs_values[i]);
 					write_max10_data(0);
+
+					wait_ms(1);
 				}
 
 			    //Activé l'interruption de l'interface
@@ -346,10 +354,7 @@ void app(){
 
 	        case APP_ERROR:{
 	        	printf("---ERROR---\n");
-
-	            //Changement d'état
-	        	app_change_state(APP_WAIT);
-	        	break;
+	        	return;
 	        }
 	    }
 	    //-------------------------------------------------------------
@@ -437,6 +442,23 @@ void read_inputs_value(){
 }
 uint32_t	convert_counteur_delta_to_time(uint32_t counteur_delta){
 	return TICKS_TO_MILLISECONDS(counteur_delta);
+}
+uint32_t 	convert_time_to_counteur_delta(uint32_t time) {
+    return MILLISECONDS_TO_TICKS(time);
+}
+void		wait_ms(uint32_t ms){
+	uint32_t setpoint = convert_time_to_counteur_delta(ms);
+
+	// Démarrage du compteur
+	write_counteur_spt_setpoint(setpoint);
+	write_counteur_spt_start(1);
+
+	// Attendre
+	while(!read_counter_spt_finished()) {}
+
+	// Arreter le compteur
+	write_counteur_spt_stop(1);
+
 }
 uint32_t 	convert_max10_leds_square_value(uint32_t cs_square, bool* square_value){
 	uint8_t start_line	= (cs_square == MAX10_CS_LEDS_SQUARE_35t31_25t21_15t11) ? 0 : 3;
