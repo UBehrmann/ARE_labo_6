@@ -16,6 +16,11 @@
   - [Emetteur série asynchrone](#emetteur-série-asynchrone)
 - [Implémentation](#implémentation)
 - [Tests](#tests)
+  - [Simulation](#simulation)
+    - [IOs](#ios)
+    - [Compteurs](#compteurs)
+    - [Interruptions](#interruptions)
+    - [Test serial transmission to max10](#test-serial-transmission-to-max10)
 - [Conclusion](#conclusion)
 
 # Introduction
@@ -71,6 +76,42 @@ Pour l'émetteur série asynchrone, nous avons dû utilsé une baudrate de 9600.
 # Implémentation
 
 # Tests
+
+## Simulation
+
+### IOs
+
+On a fait une première simulation pour vérifier les IOs. On a fait une suite de R/W sur les adresses de la mémoire. On a vérifié que les valeurs lues correspondaient aux valeurs écrites.
+
+![](./imgs/test_IOs.png)
+
+### Compteurs
+
+On a fait une deuxième simulation pour vérifier le compteur. On a fait un test avec 0 périodes supplémentaires. On voit bien que le compteur s'incrémente de 2 avec chaque instruction. On a un total de 6 périodes. entre le début et la fin du comptage.
+
+![](./imgs/test_cmpt_0_periods.png)
+
+Avec 10 périodes supplémentaires, on voit qu'on a un total de 16 périodes entre le début et la fin du comptage.
+
+![](./imgs/test_cmpt_10_periods.png)
+
+### Interruptions
+
+Pour les interruptions, on a fait un premier test pour vérifier que l'interruption se déclenche bien. On a changé la position du bouton 0 de 0 à 1. On voit bien que l'interruption se déclenche.
+
+On peut bien voir qu'on n'a pas d'interruption à la première lecture du registre 0x14 et qu'on a une interruption à la deuxième lecture.
+
+Dans la deuxième partie de la simulation, on a activé le masque d'interruption. On voit bien que l'interruption ne se déclenche pas, mais que le bit d'indication de flanc montant est à 1.
+
+![](./imgs/test_itp.png)
+
+### Test serial transmission to max10
+
+Pour tester la transmission série vers le max10, on a fait un test avec une valeur de 0xabaa et un chip select de 0x01. Cela nous donne une data de 0x01abaa ou bien 0b0001_1010_1011_1010_1010.
+
+On a aussi changé la vitesse de la baudrate pour avoir une pulse tous les 4 cycles. 
+
+![](./imgs/test_max10.png)
 
 # Conclusion
 
