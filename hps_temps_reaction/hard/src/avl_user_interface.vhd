@@ -80,7 +80,8 @@ architecture rtl of avl_user_interface is
 			start     : in  STD_LOGIC;  -- Signal pour démarrer le comptage
 			stop      : in  STD_LOGIC;  -- Signal pour arrêter le comptage
 			delta     : out STD_LOGIC_VECTOR (31 downto 0);  -- Temps écoulé entre start et stop
-			error_cnt : out STD_LOGIC_VECTOR (31 downto 0)   -- Nombre d'erreurs
+			error_cnt : out STD_LOGIC_VECTOR (31 downto 0);   -- Nombre d'erreurs
+			trys_cnt	 : out STD_LOGIC_VECTOR (31 downto 0)   -- Nombre d'essaies
 		);
 	END COMPONENT;
 	FOR ALL : counter_reaction USE ENTITY work.counter_reaction;
@@ -94,6 +95,20 @@ architecture rtl of avl_user_interface is
 		);
 	END COMPONENT;
 	FOR ALL : counter_cycle USE ENTITY work.counter_cycle;
+	-- Counter consigne
+	COMPONENT counter_setpoint IS
+		PORT (
+			clk    			: in  STD_LOGIC; -- Signal d'horloge
+			reset  			: in  STD_LOGIC; -- Signal de remise à zéro
+			start				: in  STD_LOGIC;
+			stop				: in  STD_LOGIC;
+			setpoint  		: in STD_LOGIC_VECTOR(31 downto 0);
+			finished  		: out STD_LOGIC
+		);
+	END COMPONENT;
+	FOR ALL : counter_setpoint USE ENTITY work.counter_setpoint;
+
+	
 	
    --| Constants declarations |--------------------------------------------------------------
 	-- VALUES
@@ -108,11 +123,16 @@ architecture rtl of avl_user_interface is
 	CONSTANT MAX10_TX_BUSY_ADDRESS		: INTEGER := 8;
 	CONSTANT CNT_DELTA_ADDRESS				: INTEGER := 13;
 	CONSTANT CNT_ERROR_CNT_ADDRESS		: INTEGER := 14;
-	CONSTANT CNT_CYC_COUNT_ADDRESS		: INTEGER := 15;
+	CONSTANT CNT_TRYS_CNT_ADDRESS			: INTEGER := 15;
+	CONSTANT CNT_CYC_COUNT_ADDRESS		: INTEGER := 16;
+	CONSTANT CNT_SPT_FINISHED_ADDRESS	: INTEGER := 20;
 	-- ADDRESS (WRITE ONLY)
 	CONSTANT INTERRUPT_CLEAR_ADDRESS 	: INTEGER := 5;
 	CONSTANT CNT_START_ADDRESS				: INTEGER := 11;
 	CONSTANT CNT_STOP_ADDRESS				: INTEGER := 12;
+	CONSTANT CNT_SPT_START_ADDRESS		: INTEGER := 17;
+	CONSTANT CNT_SPT_STOP_ADDRESS			: INTEGER := 18;
+	CONSTANT CNT_SPT_SETPOINT_ADDRESS	: INTEGER := 19;
 	-- ADDRESS (READ/WRITE)
 	CONSTANT LEDS_ADDRESS 					: INTEGER := 3;
 	CONSTANT HEX0_4_ADDRESS 				: INTEGER := 4;
@@ -132,6 +152,7 @@ architecture rtl of avl_user_interface is
 	SIGNAL cs_w_leds_s						: STD_LOGIC;
 	--BOUTTON
 	SIGNAL boutton_reg_s 					: STD_LOGIC_VECTOR(3 DOWNTO 0);
+	SIGNAL button_0_reg_s					: STD_LOGIC;
 	SIGNAL cs_r_boutton_s					: STD_LOGIC;
 	--SWITCHES
 	SIGNAL switches_reg_s 					: STD_LOGIC_VECTOR(9 DOWNTO 0);
@@ -156,6 +177,7 @@ architecture rtl of avl_user_interface is
 	SIGNAL cs_r_itp_mask_s					: STD_LOGIC;
 	SIGNAL cs_w_itp_mask_s					: STD_LOGIC;
 	--Interruption clear
+	signal itp_clear_s						: STD_LOGIC_VECTOR(1 DOWNTO 0);
 	SIGNAL cs_w_itp_clear_s					: STD_LOGIC;
 	--Asynchrone serial com
 	SIGNAL ascom_clk_s						: STD_LOGIC;
@@ -167,26 +189,34 @@ architecture rtl of avl_user_interface is
 	SIGNAL max10_tx_busy_s					: STD_LOGIC_VECTOR(1 DOWNTO 0);
 	SIGNAL cs_r_max10_tx_busy_s			: STD_LOGIC;
 	SIGNAL max10_cs_s							: STD_LOGIC_VECTOR(3 DOWNTO 0);
-	
 	SIGNAL cs_w_max10_cs_s					: STD_LOGIC;
 	SIGNAL cs_r_max10_cs_s					: STD_LOGIC;
 	SIGNAL max10_cs_reg_s					: STD_LOGIC_VECTOR(3 DOWNTO 0);
 	SIGNAL cs_w_max10_cs_reg_s				: STD_LOGIC;
 	SIGNAL max10_data_s						: STD_LOGIC_VECTOR(15 DOWNTO 0);
-	
 	SIGNAL cs_w_max10_data_s				: STD_LOGIC;
 	SIGNAL cs_r_max10_data_s				: STD_LOGIC;
 	SIGNAL max10_data_reg_s					: STD_LOGIC_VECTOR(15 DOWNTO 0);
 	SIGNAL cs_w_max10_data_reg_s			: STD_LOGIC;
-	--Counteur
+	--Counteur reaction
 	SIGNAL cs_w_cnt_start_s					: STD_LOGIC;
 	SIGNAL cs_w_cnt_stop_s					: STD_LOGIC;
 	SIGNAL cnt_delta_s						: STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL cs_r_cnt_delta_s					: STD_LOGIC;
 	SIGNAL cnt_error_cnt_s					: STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL cs_r_cnt_error_cnt_s			: STD_LOGIC;
+	SIGNAL cnt_trys_cnt_s					: STD_LOGIC_VECTOR(31 DOWNTO 0);
+	SIGNAL cs_r_cnt_trys_cnt_s				: STD_LOGIC;
+	--Counteur cycle (0...3s)
 	SIGNAL cnt_cyc_count_s					: STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL cs_r_cnt_cyc_count_s			: STD_LOGIC;
+	--Counteur setpoint
+	SIGNAL cs_w_cnt_spt_start_s 			: STD_LOGIC;
+	SIGNAL cs_w_cnt_spt_stop_s 			: STD_LOGIC;
+	SIGNAL cnt_spt_setpoint_s				: STD_LOGIC_VECTOR(31 DOWNTO 0);
+	SIGNAL cs_w_cnt_spt_setpoint_s 		: STD_LOGIC;
+	SIGNAL cs_r_cnt_spt_finished_s		: STD_LOGIC;
+	SIGNAL cnt_spt_finished_s				: STD_LOGIC_VECTOR(1 DOWNTO 0);
 	
 
 begin	
@@ -194,7 +224,7 @@ begin
 	-- INPUTS
 	------------------------------------------------------
 	-- Synchronis input signals
-	sync_input : PROCESS (avl_reset_i,avl_clk_i)
+	sync_inputs : PROCESS (avl_reset_i,avl_clk_i)
 	BEGIN
 	IF avl_reset_i = '1' THEN
 		boutton_reg_s						<= (OTHERS => '0');
@@ -204,37 +234,80 @@ begin
       switches_reg_s 					<= switch_i;
    END IF;
 	END PROCESS;
+	------------------------------------------------------
+	-- Registre du boutton 0
+	button_0_reg_p : PROCESS (avl_reset_i, avl_clk_i)
+	BEGIN
+	IF(avl_reset_i = '1') THEN
+		button_0_reg_s 					<= '1';
+	ELSIF rising_edge(avl_clk_i) THEN
+		button_0_reg_s 					<= boutton_reg_s(0);
+	END IF;
+	END PROCESS;
 
 	
 	
 	------------------------------------------------------
 	-- OUTPUT
 	------------------------------------------------------
+	-- Write output signal 
+	write_outputs : PROCESS (avl_reset_i,avl_clk_i)
+	BEGIN
+	IF avl_reset_i = '1' THEN
+		hex_0_4_reg_s						<= (OTHERS => '0');
+		led_reg_s							<= (OTHERS => '0');
+	ELSIF rising_edge(avl_clk_i) THEN
+		IF cs_w_hex_0_4_s = '1' THEN
+			hex_0_4_reg_s					<= avl_writedata_i(27 DOWNTO 0);
+		ELSIF cs_w_leds_s = '1' THEN
+			led_reg_s						<= avl_writedata_i(9 DOWNTO 0);
+		END IF;
+   END IF;
+	END PROCESS;
+	------------------------------------------------------
 	-- Signals affect
-	hex0_o <= hex_0_4_reg_s(6 DOWNTO 0);
-	hex1_o <= hex_0_4_reg_s(13 DOWNTO 7);
-	hex2_o <= hex_0_4_reg_s(20 DOWNTO 14);
-	hex3_o <= hex_0_4_reg_s(27 DOWNTO 21);
-  
+	hex0_o 	<= hex_0_4_reg_s(6 DOWNTO 0);
+	hex1_o 	<= hex_0_4_reg_s(13 DOWNTO 7);
+	hex2_o 	<= hex_0_4_reg_s(20 DOWNTO 14);
+	hex3_o 	<= hex_0_4_reg_s(27 DOWNTO 21);
+	led_o		<= led_reg_s;
   
   
   	------------------------------------------------------
 	-- INTERRUPT
 	------------------------------------------------------
+	-- Write interrupt signal 
+	write_interrupt : PROCESS (avl_reset_i,avl_clk_i)
+	BEGIN
+	IF avl_reset_i = '1' THEN
+		itp_mask_s							<= (OTHERS => '0');
+		itp_clear_s							<= (OTHERS => '0');
+	ELSIF rising_edge(avl_clk_i) THEN
+		IF cs_w_itp_mask_s = '1' THEN
+			itp_mask_s						<= avl_writedata_i(1 DOWNTO 0);
+		END IF;
+		itp_clear_s(0)						<= cs_w_itp_clear_s;
+   END IF;
+	END PROCESS;
+	------------------------------------------------------
+	-- Read source
+	read_interrupt_source : PROCESS (avl_reset_i, avl_clk_i)
+	BEGIN
+	IF avl_reset_i = '1' THEN
+		itp_src_s 				<= '0';
+	ELSIF rising_edge(avl_clk_i) THEN
+		IF itp_clear_s(0)	 = '1' THEN
+			itp_src_s 			<= '0';
+		ELSIF boutton_reg_s(0) = '0' AND button_0_reg_s = '1' THEN
+			itp_src_s			<= '1';
+		END IF;
+	END IF;
+	END PROCESS;
+	------------------------------------------------------
 	-- Signals affect
 	itp_s 			<= '1' WHEN (itp_src_s = '1' AND itp_mask_s(0) = '0') ELSE '0';
 	itp_status_s	<= itp_s & itp_src_s;
 	avl_irq_o		<= itp_s;
-	------------------------------------------------------
-	-- Read source
-	read_itp_source_p : PROCESS (avl_reset_i, cs_w_itp_clear_s, boutton_reg_s(0))
-	BEGIN
-	IF avl_reset_i = '1' OR cs_w_itp_clear_s = '1' THEN
-		itp_src_s 								<= '0';
-	ELSIF falling_edge(boutton_reg_s(0)) THEN
-		itp_src_s								<= '1';
-	END IF;
-	END PROCESS;
   
   
   
@@ -298,7 +371,8 @@ begin
 		start     		=> cs_w_cnt_start_s,
 		stop      		=> cs_w_cnt_stop_s,
 		delta     		=> cnt_delta_s,
-		error_cnt 		=> cnt_error_cnt_s
+		error_cnt 		=> cnt_error_cnt_s,
+		trys_cnt			=> cnt_trys_cnt_s
    );
    cnt_cyc : counter_cycle
 	PORT MAP (
@@ -306,7 +380,16 @@ begin
 		reset 			=> avl_reset_i,
 		enable			=> '1',
 		count 			=> cnt_cyc_count_s
-	); 
+	);
+	cnt_spt : counter_setpoint
+	PORT MAP (
+		clk    			=> avl_clk_i,
+		reset  			=> avl_reset_i,
+		start				=> cs_w_cnt_spt_start_s,
+		stop				=> cs_w_cnt_spt_stop_s,
+		setpoint  		=> cnt_spt_setpoint_s,
+		finished  		=> cnt_spt_finished_s(0)
+	);
   
 	------------------------------------------------------
 	-- ADDRESS DECODER
@@ -326,9 +409,11 @@ begin
 	cs_r_max10_tx_busy_s			<= '0';
 	cs_r_cnt_delta_s				<= '0';
 	cs_r_cnt_error_cnt_s			<= '0';
+	cs_r_cnt_trys_cnt_s 			<= '0';
 	cs_r_cnt_cyc_count_s			<= '0';
 	cs_r_max10_cs_s 				<= '0';
 	cs_r_max10_data_s 			<= '0';
+	cs_r_cnt_spt_finished_s		<= '0';
 	
 	IF avl_read_i = '1' THEN
 	   readdatavalid_next_s 	<= '1';
@@ -355,8 +440,12 @@ begin
 				cs_r_cnt_delta_s		<= '1';
 			WHEN CNT_ERROR_CNT_ADDRESS =>
 				cs_r_cnt_error_cnt_s	<= '1';
+			WHEN CNT_TRYS_CNT_ADDRESS =>
+				cs_r_cnt_trys_cnt_s 	<= '1';
 			WHEN CNT_CYC_COUNT_ADDRESS =>
 				cs_r_cnt_cyc_count_s	<= '1';
+			WHEN CNT_SPT_FINISHED_ADDRESS =>
+				cs_r_cnt_spt_finished_s	<= '1';
 			WHEN MAX10_CS_ADDRESS =>
 				cs_r_max10_cs_s 		<= '1';
 			WHEN MAX10_DATA_ADDRESS =>
@@ -378,6 +467,9 @@ begin
 	cs_w_max10_data_s	<= '0';
 	cs_w_cnt_start_s	<= '0';
 	cs_w_cnt_stop_s	<= '0';
+	cs_w_cnt_spt_start_s		<= '0';
+	cs_w_cnt_spt_stop_s 		<= '0';
+	cs_w_cnt_spt_setpoint_s	<= '0';
 	
 	IF avl_write_i = '1' THEN
 		CASE (to_integer(unsigned(avl_address_i))) IS
@@ -397,6 +489,12 @@ begin
 				cs_w_cnt_start_s				<= '1';
 			WHEN CNT_STOP_ADDRESS =>
 				cs_w_cnt_stop_s				<= '1';
+			WHEN CNT_SPT_START_ADDRESS =>
+				cs_w_cnt_spt_start_s			<= '1';
+			WHEN CNT_SPT_STOP_ADDRESS =>
+				cs_w_cnt_spt_stop_s 			<= '1';
+			WHEN CNT_SPT_SETPOINT_ADDRESS =>
+				cs_w_cnt_spt_setpoint_s		<= '1';
 			WHEN OTHERS =>
 				NULL;
 		END CASE;
@@ -417,11 +515,13 @@ begin
 								std_logic_vector((31 downto 2 => '0') & itp_status_s) 		WHEN (cs_r_itp_status_s = '1')	ELSE
 								cnt_delta_s																	WHEN (cs_r_cnt_delta_s = '1') 	ELSE
 								cnt_error_cnt_s															WHEN (cs_r_cnt_error_cnt_s = '1')ELSE
+								cnt_trys_cnt_s																WHEN (cs_r_cnt_trys_cnt_s = '1') ELSE
 								cnt_cyc_count_s															WHEN (cs_r_cnt_cyc_count_s = '1')ELSE
 								std_logic_vector((31 downto 2 => '0') & max10_status_s) 		WHEN (cs_r_max10_status_s = '1')	ELSE
 								std_logic_vector((31 downto 2 => '0') & max10_tx_busy_s) 	WHEN (cs_r_max10_tx_busy_s = '1')ELSE
 								std_logic_vector((31 downto 16 => '0') & max10_data_reg_s)	WHEN (cs_r_max10_data_s = '1')	ELSE
 								std_logic_vector((31 downto 4=> '0') & max10_cs_reg_s)		WHEN (cs_r_max10_cs_s = '1')		ELSE
+								std_logic_vector((31 downto 2 => '0') & cnt_spt_finished_s) WHEN (cs_r_cnt_spt_finished_s = '1')ELSE
 								(OTHERS => '0');
 
 								
@@ -429,12 +529,9 @@ begin
 	------------------------------------------------------
 	-- WRITE
 	------------------------------------------------------
-	led_reg_s			<= avl_writedata_i(9 DOWNTO 0)			WHEN (cs_w_leds_s = '1') 			ELSE led_reg_s;
-	hex_0_4_reg_s		<= avl_writedata_i(27 DOWNTO 0) 			WHEN (cs_w_hex_0_4_s = '1') 		ELSE hex_0_4_reg_s;
-	itp_mask_s			<= avl_writedata_i(1 DOWNTO 0)			WHEN (cs_w_itp_mask_s = '1') 		ELSE itp_mask_s;
-	max10_cs_s			<= avl_writedata_i(3 DOWNTO 0) 			WHEN (cs_w_max10_cs_s = '1') 		ELSE max10_cs_s;
-	max10_data_s		<= avl_writedata_i(15 DOWNTO 0) 			WHEN (cs_w_max10_data_s = '1') 	ELSE max10_data_s;
-	
+	max10_cs_s				<= avl_writedata_i(3 DOWNTO 0) 			WHEN (cs_w_max10_cs_s = '1') 				ELSE max10_cs_s;
+	max10_data_s			<= avl_writedata_i(15 DOWNTO 0) 			WHEN (cs_w_max10_data_s = '1') 			ELSE max10_data_s;
+	cnt_spt_setpoint_s	<= avl_writedata_i(31 DOWNTO 0) 			WHEN (cs_w_cnt_spt_setpoint_s = '1')	ELSE cnt_spt_setpoint_s;
 	
 	
 	------------------------------------------------------

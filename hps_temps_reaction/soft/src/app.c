@@ -106,9 +106,10 @@ void init_game_stats();
 void update_game_stats(uint32_t errors_count, uint32_t trys_count);
 void display_game_data();
 //-----------------------
-uint32_t convert_max10_leds_square_value(uint32_t cs_square, bool* square_value);
-uint32_t convert_counteur_delta_to_time(uint32_t counteur_delta);
-void turn_off_hour_leds();
+uint32_t 	convert_max10_leds_square_value(uint32_t cs_square, bool* square_value);
+uint32_t 	convert_counteur_delta_to_time(uint32_t counteur_delta);
+void 		turn_off_hour_leds();
+void 		split_digits(uint32_t value, uint8_t* digits_tb, size_t size);
 //--------------------------------------------------------
 
 
@@ -265,6 +266,22 @@ void app(){
 	        	//Lecture des entrées
 	        	read_inputs_value();
 
+	        	//
+	        	uint32_t value_to_display_hex = 0;
+	        	if(app_inputs.switches.switch_value[0]) value_to_display_hex = game_times.best_time;
+	        	if(app_inputs.switches.switch_value[1]) value_to_display_hex = game_times.worst_time;
+	        	if(app_inputs.switches.switch_value[2]) value_to_display_hex = game_stats.errors_count;
+	        	if(app_inputs.switches.switch_value[3]) value_to_display_hex = game_stats.trys_count;
+	        	if((app_inputs.switches.switches_value & 0xF) == 0) value_to_display_hex = game_times.last_time;
+	        	uint8_t nb_digits = 4;
+	        	uint8_t digits[nb_digits];
+	        	split_digits(value_to_display_hex, digits, nb_digits);
+	            write_hex0(digits[3], true);
+	            write_hex1(digits[2], true);
+	            write_hex2(digits[1], true);
+	            write_hex3(digits[0], true);
+
+
 	        	//Changement d'état
 	        	if(read_counter_spt_finished()){
 	        		app_change_state(APP_START_GAME);
@@ -418,10 +435,10 @@ void read_inputs_value(){
 	read_k();
 	read_s();
 }
-uint32_t convert_counteur_delta_to_time(uint32_t counteur_delta){
+uint32_t	convert_counteur_delta_to_time(uint32_t counteur_delta){
 	return TICKS_TO_MILLISECONDS(counteur_delta);
 }
-uint32_t convert_max10_leds_square_value(uint32_t cs_square, bool* square_value){
+uint32_t 	convert_max10_leds_square_value(uint32_t cs_square, bool* square_value){
 	uint8_t start_line	= (cs_square == MAX10_CS_LEDS_SQUARE_35t31_25t21_15t11) ? 0 : 3;
 	uint8_t stop_line 	= (cs_square == MAX10_CS_LEDS_SQUARE_35t31_25t21_15t11) ? 2 : 4;
 
@@ -436,7 +453,13 @@ uint32_t convert_max10_leds_square_value(uint32_t cs_square, bool* square_value)
 	}
 	return value;
 }
-void turn_off_hour_leds(){
+void 		split_digits(uint32_t value, uint8_t* digits_tb, size_t size){
+    for (int i = size - 1; i >= 0; i--) {
+    	digits_tb[i] = value % 10;  // Extraire le dernier chiffre
+        value /= 10;            // Réduire la valeur
+    }
+}
+void 		turn_off_hour_leds(){
     uint32_t hour_colors[] = {0x0000, 0x4444, 0x8888, 0xCCCC};
     uint32_t hour_cs_reg[] = {MAX10_CS_LEDS_HOUR_04_01, MAX10_CS_LEDS_HOUR_08_05, MAX10_CS_LEDS_HOUR_12_09};
 

@@ -22,12 +22,12 @@ architecture comport of counter_cycle is
 	signal counter_reg 	: INTEGER range 0 to COUNTER_MAX := 0;
 	
 begin
-	process(clk)
+	process(clk, reset)
 	begin
-	if rising_edge(clk) then
-		if reset = '1' then
-			counter_reg <= 0; -- Remise à zéro
-		elsif enable = '1' then
+	if reset = '1' then
+		counter_reg <= 0; -- Remise à zéro
+	elsif rising_edge(clk) then
+		if enable = '1' then
 			if counter_reg = COUNTER_MAX then
 				counter_reg <= 0; -- Retour à 0 après avoir atteint la limite
 			else
